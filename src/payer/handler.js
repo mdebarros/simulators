@@ -25,7 +25,9 @@
 const NodeCache = require('node-cache')
 const myCache = new NodeCache()
 const fetch = require('node-fetch')
-const Metrics = require('../lib/metrics')
+// const Metrics = require('../lib/metrics')
+const Metrics = require('@mojaloop/central-services-metrics')
+const Logger = require('@mojaloop/central-services-shared').Logger
 
 const extractUrls = (request) => {
   const urls = {}
