@@ -16,20 +16,16 @@
  their names indented and be marked with a '-'. Email address can be added
  optionally within square brackets <email>.
  * Gates Foundation
+
  - Murthy Kakarlamudi murthy@modusbox.com
+ - Miguel de Barros <miguel.debarros@modusbox.com>
+
  --------------
  ******/
 
 'use strict'
 
-const Glob = require('glob')
-// const Logger = require('./lib/logger')
-const Logger = require('@mojaloop/central-services-shared').Logger
+exports.health = function (request, h) {
 
-exports.plugin = {
-  name: 'api routes',
-  register: function (server, options) {
-    Glob.sync('*/routes.js', {cwd: __dirname, ignore: 'routes.js'})
-      .forEach(x => { Logger.info(`Loading module: [${x}]`); server.route(require('./' + x));})
-  }
+  return h.response({status: 'OK'}).code(200)
 }

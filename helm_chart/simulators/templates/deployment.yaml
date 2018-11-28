@@ -11,13 +11,19 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "simulators.name" . }}
+#      app: {{ template "simulators.name" . }}
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
         app: {{ template "simulators.name" . }}
         release: {{ .Release.Name }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
+        {{- if .Values.metrics.enabled }}
+        prometheus.io/port: "8444"
+        prometheus.io/scrape: "true"
+        {{- end }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -61,20 +67,68 @@ spec:
                 configMapKeyRef:
                   name: {{ template "simulators.fullname" . }}
                   key: TRANSFERS_ENDPOINT
+            - name: TRANSFERS_FULFIL_RESPONSE_DISABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "simulators.fullname" . }}
+                  key: TRANSFERS_FULFIL_RESPONSE_DISABLED
+            - name: TRANSFERS_FULFILMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "simulators.fullname" . }}
+                  key: TRANSFERS_FULFILMENT
+            - name: TRANSFERS_CONDITION
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "simulators.fullname" . }}
+                  key: TRANSFERS_CONDITION
+            - name: TRANSFERS_ILPPACKET
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "simulators.fullname" . }}
+                  key: TRANSFERS_ILPPACKET
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "simulators.fullname" . }}
+                  key: LOG_LEVEL
+            - name: METRICS_DISABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "simulators.fullname" . }}
+                  key: METRICS_DISABLED
+            - name: METRICS_PREFIX
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "simulators.fullname" . }}
+                  key: METRICS_PREFIX
+            - name: METRICS_TIMEOUT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "simulators.fullname" . }}
+                  key: METRICS_TIMEOUT
+
+          {{- if .Values.resources }}
           resources:
+            {{ toYaml .Values.resources | indent 8 }}
+          {{- end }}
+
+{{- if .Values.imagePullSecrets }}
       imagePullSecrets:
-        - name: regcred
-{{ toYaml .Values.resources | indent 12 }}
-        - name: {{ .Values.imageCredentials.name }}
-    {{- with .Values.nodeSelector }}
-      nodeSelector:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.affinity }}
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+{{- end }}
+
+{{- if .Values.affinity }}
       affinity:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.tolerations }}
+{{ toYaml .Values.affinity | indent 8 }}
+{{- end }}
+
+{{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+{{- end }}
+
+{{- if .Values.tolerations }}
       tolerations:
-{{ toYaml . | indent 8 }}
-    {{- end }}
+{{ toYaml .Values.tolerations | indent 8 }}
+{{- end }}

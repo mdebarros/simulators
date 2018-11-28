@@ -24,6 +24,14 @@
 
 const Hapi = require('hapi')
 const Boom = require('boom')
+const Logger = require('@mojaloop/central-services-shared').Logger
+const Metrics = require('@mojaloop/central-services-metrics')
+
+let metricsOptions = {
+  prefix: process.env.METRICS_PREFIX || 'moja_sim_',
+  timeout: process.env.METRICS_TIMEOUT || 5000
+}
+
 
 const createServer = (port, modules) => {
   return (async () => {
@@ -37,9 +45,16 @@ const createServer = (port, modules) => {
         }
       }
     })
+    Logger.info(`Registering server modules...`)
     await server.register(modules)
+
+    Logger.info(`Initializing metrics...`)
+    Metrics.setup(metricsOptions)
+
+    Logger.info(`Server starting up...`)
     await server.start()
-    console.log('Server running at: ', server.info.uri)
+
+    Logger.info(`Server running at: ${server.info.uri}`)
     return server
   })()
 }
