@@ -24,6 +24,8 @@
 
 const Hapi = require('hapi')
 const Boom = require('boom')
+const Logger = require('@mojaloop/central-services-shared').Logger
+const Metrics = require('../lib/metrics')
 
 const createServer = (port, modules) => {
   return (async () => {
@@ -37,15 +39,25 @@ const createServer = (port, modules) => {
         }
       }
     })
+    Logger.info(`Registering server modules...`)
     await server.register(modules)
+
+    Logger.info(`Registering server plugins`)
+    await require('./plugins').registerPlugins(server)
+
+    Logger.info(`Initializing metrics...`)
+    Metrics.setup()
+
+    Logger.info(`Server starting up...`)
     await server.start()
-    console.log('Server running at: ', server.info.uri)
+
+    Logger.info(`Server running at: ${server.info.uri}`)
     return server
   })()
 }
 
 // Migrator.migrate is called before connecting to the database to ensure all new tables are loaded properly.
-const initialize = async function ({service, port, modules = []}) {
+const initialize = async function ({ service, port, modules = [] }) {
   const server = await createServer(port, modules)
   return server
 }
